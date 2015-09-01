@@ -25,8 +25,8 @@ class App {
 	 * The constructor takes a controller class name and method
 	 * and performs the prepares the App to be rendered via the html or json functions
 	 *
-	 * @param User  $user  user instance
-	 * @param Input $input input object
+	 * @param UserInterface $user  user instance
+	 * @param Input         $input input object
 	 *
 	 * @return void
 	 */
@@ -57,9 +57,9 @@ class App {
 	/**
 	 * this function is used to check the permissions of a given controller method combo
 	 *
-	 * @param User   $user       Instance of user
-	 * @param string $controller Controller Name
-	 * @param string $method     Controller function name
+	 * @param UserInterface $user       Instance of user
+	 * @param string        $controller Controller Name
+	 * @param string        $method     Controller function name
 	 *
 	 * @return int
 	 */
@@ -122,6 +122,13 @@ class App {
 		$template->build($var_params);
 	}
 	
+	/**
+	 * this function echo's or returns the string of a controller call
+	 *
+	 * @param boolean $toString true to return string, false to print
+	 *
+	 * @return string|true
+	 */
 	public function component($toString = false) {
 		// getting app controller & method
 		$controller = $this->_controller;
@@ -173,4 +180,3 @@ class App {
 		));
 	}
 }
-?>
