@@ -5,7 +5,7 @@ use Ali\Model\User;
 use Ali\Model\Session;
 use Ali\Base\UserInterface;
 
-class UserSession extends User implements UserInterface {
+class UserSession implements UserInterface {
 	// this function gets an instance of a user
 	public static function getInstance() {
 		static $user = false;
@@ -26,5 +26,8 @@ class UserSession extends User implements UserInterface {
 			}
 		}
 		return $user;
+	}
+	public function checkPermissions($permissions) {
+		return true;
 	}
 }

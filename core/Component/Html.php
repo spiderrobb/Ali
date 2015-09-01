@@ -30,7 +30,7 @@ class Html {
 		return self::endTag('form');
 	}
 	public static function input($type, $name, $value, array $htmloptions = array()) {
-		if ($type !== null {
+		if ($type !== null) {
 			$htmloptions['type']  = $type;
 		}
 		if ($name !== null) {
