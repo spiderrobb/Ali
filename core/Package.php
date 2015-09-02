@@ -131,15 +131,11 @@ class Package {
 				}
 			}
 
-			// including package script
-			foreach ($this->_paths as $path) {
-				// building file location from package name
-				$path .= '/'.$package.'.js';
-				if (file_exists($path)) {
-					// linking script
-					$this->linkScript($this->_path.$path);
-					break;
-				}
+			// building file location from package name
+			$path = $package.'.js';
+			if (file_exists($path)) {
+				// linking script
+				$this->linkScript($this->_path.$path);
 			}
 
 			// mark package as loaded
@@ -202,16 +198,12 @@ class Package {
 					$this->linkStyle($script);
 				}
 			}
-
-			// requireing package css
-			foreach ($this->_paths as $path) {
-				// building file location from package name
-				$path .= '/'.$package.'.css';
-				if (file_exists($path)) {
-					// linking script
-					$this->linkStyle($this->_path.$path);
-					break;
-				}
+			
+			// building file location from package name
+			$path = $package.'.css';
+			if (file_exists($path)) {
+				// linking script
+				$this->linkStyle($this->_path.$path);
 			}
 
 			// mark package as loaded
