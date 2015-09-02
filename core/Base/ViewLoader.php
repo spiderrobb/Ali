@@ -7,6 +7,9 @@ use Exception;
 
 trait ViewLoader {
 	protected function _view($view, array $data = array(), $toString = false) {
+		// setting up include paths
+		$paths = Config::get('environment.include_path');
+
 		// building path location for absolute paths
 		if ($view[0] === '/') {
 			$view = 'View'.$view;
@@ -17,29 +20,29 @@ trait ViewLoader {
 				var_dump(debug_backtrace(false));
 				throw new Exception('Error: must use absolute view path from this location.');
 			}
-			$view = 'View/'.str_replace('\\', '/', substr($context['class'], 4)).'/'.$view;
-		}
-		
-		// setting up include paths
-		$paths = Config::get('environment.include_path');
-		foreach ($paths as $path) {
-			// building file location from view name
-			$path .= '/'.$view.'.php';
-			if (file_exists($path)) {
-				// including css and javascript
-				Package::getInstance()->get($view);
-				// including php file of view
-				ob_start();
-				extract($data);
-				include $path;
-				$content = ob_get_clean();
-				break;
+			// building namespace preg_replace
+			$patterns = array();
+			$replace  = array();
+			foreach ($paths as $namespace => $path) {
+				$patterns[] = '/^'.str_replace('\\', '\\\\', $namespace).'/';
+				$replace[]  = $path.'/View/';
 			}
+			$view = str_replace('\\', '/', preg_replace($patterns, $replace, $context['class'])).'/'.$view;
 		}
-		
-		// checking if view exists
-		if (!file_exists($path)) {
-			throw new Exception('no view '.$view.'.php, in '.json_encode($paths));
+
+		// building file location from view name
+		$path = $view.'.php';
+		if (file_exists($path)) {
+			// including css and javascript
+			Package::getInstance()->get($view);
+			// including php file of view
+			ob_start();
+			extract($data);
+			include $path;
+			$content = ob_get_clean();
+		} else {
+			$dir = getcwd();
+			throw new Exception("View not found ({$path}) in ({$dir})");
 		}
 		
 		// return method

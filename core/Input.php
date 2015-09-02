@@ -55,7 +55,8 @@ class Input {
 		$url        = $url[0];
 		$url        = substr($url, strlen(Config::get('environment.url_path')));
 		$url        = str_replace('/', '\\', $url);
-		$controller = 'Ali\\Controller\\';
+		$paths      = Config::get('environment.include_path');
+		$controller = 'Controller\\';
 		$method     = '';
 		$arg        = '';
 		$args       = array();
@@ -86,11 +87,18 @@ class Input {
 		if (!empty($method)) {
 			$this->_method = $method;
 		}
-		if ($controller !== 'Ali\\Controller\\') {
-			$this->_controller = $controller;
+		while ($controller{strlen($controller)-1} === '\\') {
+			$controller = substr($controller, 0, -1);
 		}
-		while ($this->_controller{strlen($this->_controller)-1} === '\\') {
-			$this->_controller = substr($this->_controller, 0, -1);
+		if ($controller !== 'Controller') {
+			// looking through include paths for
+			foreach ($paths as $prefix => $path) {
+				if (class_exists($prefix.$controller)) {
+					$controller = $prefix.$controller;
+				}
+			}
+			// setting controller
+			$this->_controller = $controller;
 		}
 	}
 
@@ -149,4 +157,3 @@ class Input {
 	}
 	
 }
-?>

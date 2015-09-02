@@ -1,5 +1,8 @@
 <?php
 namespace Ali;
+
+use Ali\Component\Html;
+
 /**
  * Package
  * The package class is responsible for handling
@@ -10,6 +13,7 @@ namespace Ali;
 class Package {
 	// private static variable for singleton
 	private static $_instance;
+
 	/**
 	 * this function gets an instance of the request package
 	 *
@@ -21,6 +25,7 @@ class Package {
 		}
 		return self::$_instance;
 	}
+
 	// declaring variables
 	private $_meta;
 	private $_js_packages;
@@ -30,6 +35,7 @@ class Package {
 	private $_css_files;
 	private $_css_raw;
 	private $_paths;
+
 	/**
 	 * the constructor builds and initializes the resource and data arrays for Package
 	 */
@@ -38,6 +44,7 @@ class Package {
 		if (isset(self::$_istance)) {
 			throw new Exception('This class singleton already exists.');
 		}
+
 		// init variables
 		$this->_meta         = array();
 		$this->_js_packages  = array();
@@ -49,6 +56,7 @@ class Package {
 		$this->_paths        = Config::get('environment.include_path');
 		$this->_path         = Config::get('environment.url_path');
 	}
+
 	/**
 	 * this function takes peta parameters to be included with the request
 	 *
@@ -59,6 +67,7 @@ class Package {
 	public function addMeta($params) {
 		$this->_meta[] = $params;
 	}
+
 	/**
 	 * this function generates all the meta content
 	 *
@@ -66,11 +75,7 @@ class Package {
 	 */
 	public function generateMeta() {
 		foreach ($this->_meta as $tag) {
-			?><meta<?php
-			foreach ($tag as $attribute => $value) {
-				echo ' '.$attribute.'="'.str_replace('"', '&quot;', $value).'"';
-			}
-			?>/><?php
+			echo Html::startTag('meta', $tag, true);
 		}
 	}
 	/**
@@ -82,6 +87,7 @@ class Package {
 	 * @return void
 	 */
 	public function get($package) {
+		// check for native view files
 		$this->getScript($package);
 		$this->getStyle($package);
 	}
@@ -95,7 +101,7 @@ class Package {
 	 * @return void
 	 */
 	public function addScript($script) {
-		$this->_js_raw[] = preg_replace('/\s+/', ' ', $script);
+		$this->_js_raw[] = $script;
 	}
 	/**
 	 * this function includes any javascript files included in a package
@@ -107,17 +113,33 @@ class Package {
 	public function getScript($package) {
 		// checking if we have already included this package
 		if (!in_array($package, $this->_js_packages)) {
-			// recording that we have already included this package
-			$this->_js_packages[] = $package;
-			foreach ($this->_paths as $path) {
-				// building file location from package name
-				$path .= '/'.$package.'.js';
-				if (file_exists($path)) {
-					// linking script
-					$this->linkScript($this->_path.$path);
-					break;
+			// check for package requirements
+			$packages = Config::get('packages');
+			if (isset($packages[$package]['requires'])) {
+				foreach ($packages[$package]['requires'] as $required_package) {
+					$this->getScript($required_package);
 				}
 			}
+
+			// linking scripts in packages configuration
+			if (isset($packages[$package]['js'])) {
+				foreach ($packages[$package]['js'] as $script) {
+					if (substr($script, 0, 4) !== 'http') {
+						$script = $this->_path.$script;
+					}
+					$this->linkScript($script);
+				}
+			}
+
+			// building file location from package name
+			$path = $package.'.js';
+			if (file_exists($path)) {
+				// linking script
+				$this->linkScript($this->_path.$path);
+			}
+
+			// mark package as loaded
+			$this->_js_packages[] = $package;
 		}
 	}
 	// the linkScript function is used to link javascript files
@@ -129,14 +151,14 @@ class Package {
 	// all the javascript files that have been linked to this request
 	public function generateScript() {
 		foreach ($this->_js_files as $link) {
-			?><script type="text/javascript" charset="utf-8" src="<?php echo $link; ?>"></script><?php
+			echo Html::tag('script', '', array('type'=>'text/javascript', 'charset'=>'utf-8', 'src'=>$link));
 		}
 	}
 	// the generateCustomScript function generates the html for all
 	// the javascript code added through the addScript function for this request
 	public function generateCustomScript(){
 		if (!empty($this->_js_raw)) {
-			?><script><?php echo implode(' ', $this->_js_raw); ?></script><?php
+			echo Html::tag('script', $this->getScriptCalls());
 		}
 	}
 	// the getScriptLinks function returns the full list of javascript
@@ -152,24 +174,40 @@ class Package {
 	// the addStyle function is for adding css to a page without
 	// linking a css file
 	public function addStyle($style) {
-		$this->_css_raw[] = preg_replace('/\s+/', ' ', $style);
+		$this->_css_raw[] = $style;
 	}
 	// the getStyle function is used to require the css
 	// associated with the given package or class
 	public function getStyle($package) {
 		// checking if we have already included this package
 		if (!in_array($package, $this->_css_packages)) {
-			// recording that we have included this package
-			$this->_css_packages[] = $package;
-			foreach ($this->_paths as $path) {
-				// building file location from package name
-				$path .= '/'.$package.'.css';
-				if (file_exists($path)) {
-					// linking script
-					$this->linkStyle($this->_path.$path);
-					break;
+			// check for package requirements
+			$packages = Config::get('packages');
+			if (isset($packages[$package]['requires'])) {
+				foreach ($packages[$package]['requires'] as $required_package) {
+					$this->getStyle($required_package);
 				}
 			}
+
+			// check for package configuration
+			if (isset($packages[$package]['css'])) {
+				foreach ($packages[$package]['css'] as $script) {
+					if (substr($script, 0, 4) !== 'http') {
+						$script = $this->_path.$script;
+					}
+					$this->linkStyle($script);
+				}
+			}
+			
+			// building file location from package name
+			$path = $package.'.css';
+			if (file_exists($path)) {
+				// linking script
+				$this->linkStyle($this->_path.$path);
+			}
+
+			// mark package as loaded
+			$this->_css_packages[] = $package;
 		}
 	}
 	// the linkStyle function is used to link css files
@@ -181,14 +219,14 @@ class Package {
 	// all the css files that have been linked to this request
 	public function generateStyle() {
 		foreach ($this->_css_files as $link) {
-			?><link rel="stylesheet" href="<?php echo $link; ?>"><?php
+			echo Html::startTag('link', array('rel'=>'stylesheet', 'href'=>$link));
 		}
 	}
 	// the generateCustomStyle function generates the html for all
 	// the css styles added through the addStyle function for this request
 	public function generateCustomStyle() {
 		if (!empty($this->_css_raw)) {
-			?><style><?php echo implode(' ', $this->_css_raw); ?></style><?php
+			echo Html::tag('style', $this->getStyleLinks());
 		}
 	}
 	// the getStyleLinks function returns the full list of css urls
@@ -196,5 +234,8 @@ class Package {
 	public function getStyleLinks() {
 		return implode(' ', $this->_css_raw);
 	}
+
+	public function getAssetPath($path) {
+		return $this->_path.$path;
+	}
 }
-?>

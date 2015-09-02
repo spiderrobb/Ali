@@ -1,4 +1,5 @@
 {
+	"name": "ScriptJockey/Ali",
 	"autoload": {
 		"psr-4": {
 			"Ali\\" : ["core/"]
