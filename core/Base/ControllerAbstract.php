@@ -10,7 +10,7 @@ abstract class ControllerAbstract implements ControllerInterface {
 		// changing '\\' to '/' to look better in the url
 		$url = str_replace('\\', '/', get_called_class());
 		// removing the begining 'Controller_' so url's look better
-		$url = str_replace('Ali/Controller/', '', $url);
+		$url = preg_replace('/.*?\/Controller\//', '', $url);
 		
 		// appending method to end of url if method is specified
 		if (isset($method)) {
