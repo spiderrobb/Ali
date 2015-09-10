@@ -105,9 +105,9 @@ class App {
 		$content = ob_get_clean();
 
 		// getting template information
-		$var_template               = $app->getTemplate($this->_method);
-		$var_params['html_title']   = $html_title;
-		$var_params['html_content'] = $content;
+		$var_template          = $app->getTemplate($this->_method);
+		$var_params['title']   = $html_title;
+		$var_params['content'] = $content;
 
 		
 		// validating template
