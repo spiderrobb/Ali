@@ -145,17 +145,30 @@ abstract class ActiveRecord {
 		if ($data === false) {
 			return false;
 		}
-		$this->_is_new        = false;
-		$this->_data          = $data;
-		$this->_original_data = $data;
+		return $this->loadFromArray($data);
+	}
+	public function findAll(Expression $expression = null) {
+		$sql = "SELECT 
+			*
+		FROM {$this->_table}";
+		if ($expression === null) {
+			$rows = $this->_db->fetchAll($sql);
+		} else {
+			$sql .= "WHERE ".$expression->getExpression();
+			$rows = $this->_db->fetchAll($sql, $expression->getParams());
+		}
+		$result = array();
+		foreach ($rows as $row) {
+			$result[] = self::getInstance()->loadFromArray($row);
+		}
+		return $result;
+	}
+	public function loadFromArray(array $attributes) {
+		$this->_is_new = false;
+		$this->_data   = $attributes;
+		$this->_data   = $attributes;
 		$this->_afterLoad();
 		return $this;
-	}
-	public function getList(array $args = array()) {
-		// building sql
-		$sql = "SELECT *
-		FROM {$this->_table}";
-		return $this->_db->fetchAll($sql);
 	}
 	/**
 	 * this function is called after a record is loaded
