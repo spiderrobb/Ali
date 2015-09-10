@@ -114,7 +114,7 @@ class Package {
 		// checking if we have already included this package
 		if (!in_array($package, $this->_js_packages)) {
 			// check for package requirements
-			$packages = Config::get('packages');
+			$packages = Config::get('package');
 			if (isset($packages[$package]['requires'])) {
 				foreach ($packages[$package]['requires'] as $required_package) {
 					$this->getScript($required_package);
@@ -158,7 +158,7 @@ class Package {
 	// the javascript code added through the addScript function for this request
 	public function generateCustomScript(){
 		if (!empty($this->_js_raw)) {
-			echo Html::tag('script', $this->getScriptCalls());
+			echo Html::tag('script', $this->getScriptCalls(), array(), false);
 		}
 	}
 	// the getScriptLinks function returns the full list of javascript
@@ -182,7 +182,7 @@ class Package {
 		// checking if we have already included this package
 		if (!in_array($package, $this->_css_packages)) {
 			// check for package requirements
-			$packages = Config::get('packages');
+			$packages = Config::get('package');
 			if (isset($packages[$package]['requires'])) {
 				foreach ($packages[$package]['requires'] as $required_package) {
 					$this->getStyle($required_package);
