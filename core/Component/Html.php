@@ -1,7 +1,11 @@
 <?php
 namespace Ali\Component;
 
+use Ali\DB\ActiveRecord;
+use ReflectionClass;
+
 class Html {
+	// start tag helpers
 	public static function tagParams(array $htmloptions) {
 		$param_string = '';
 		foreach ($htmloptions as $key => $value) {
@@ -21,7 +25,9 @@ class Html {
 			.($sanitize ? htmlentities($value) : $value)
 			.self::endTag($name);
 	}
-	public static function startForm($url, $method, array $htmloptions = array()) {
+
+	// start form helpers
+	public static function startForm($action, $method, array $htmloptions = array()) {
 		$htmloptions['action'] = $action;
 		$htmloptions['method'] = strtoupper($method);
 		return self::startTag('form', $htmloptions);
@@ -59,7 +65,7 @@ class Html {
 	public static function inputPassword($name, $value, array $htmloptions = array()) {
 		return self::input('password', $name, $value, $htmloptions);
 	}
-	public static function inputSelect($name, $value, $options, array $htmloptions = array()) {
+	public static function inputSelect($name, $value, array $options, array $htmloptions = array()) {
 		$values = '';
 		foreach ($options as $key => $label) {
 			$params  = array('value' => $key);
@@ -73,7 +79,7 @@ class Html {
 		}
 		return self::tag('select', $values, $htmloptions, false);
 	}
-	public static function inputLabel($label, array $htmloptions = array()) {
+	public static function label($label, array $htmloptions = array()) {
 		return self::tag('label', $label, $htmloptions);
 	}
 	public static function button($label, array $htmloptions = array()) {
@@ -81,5 +87,45 @@ class Html {
 	}
 	public static function inputSubmit($name, $value, array $htmloptions = array()) {
 		return self::input('submit', $name, $value, $htmloptions);
+	}
+
+	// start active form helpers
+	public static function modelName(ActiveRecord $record, $attribute) {
+		$ref = new ReflectionClass($record);
+		return $ref->getShortName().'['.$attribute.']';
+	}
+	public static function activeInputText(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputText($name, $value, $htmloptions);
+	}
+	public static function activeInputTextArea(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputTextArea($name, $value, $htmloptions);
+	}
+	public static function activeInputEmail(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputEmail($name, $value, $htmloptions);
+	}
+	public static function activeInputHidden(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputHidden($name, $value, $htmloptions);
+	}
+	public static function activeInputPassword(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputPassword($name, $value, $htmloptions);
+	}
+	public static function activeInputSelect(ActiveRecord $record, $attribute, array $options, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputSelect($name, $value, $options, $htmloptions);
+	}
+	public static function activeLabel(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$label = $record->getAttributeLabel($attribute);
+		return self::label($label, $htmloptions);
 	}
 }
