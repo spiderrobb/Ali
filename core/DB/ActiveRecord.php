@@ -154,7 +154,7 @@ abstract class ActiveRecord {
 		if ($expression === null) {
 			$rows = $this->_db->fetchAll($sql);
 		} else {
-			$sql .= "WHERE ".$expression->getExpression();
+			$sql .= " WHERE ".$expression->getExpression();
 			$rows = $this->_db->fetchAll($sql, $expression->getParams());
 		}
 		$result = array();
