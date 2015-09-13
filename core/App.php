@@ -44,8 +44,8 @@ class App {
 			$this->_controller = Config::get('environment.error.404.controller');
 			$this->_method     = Config::get('environment.error.404.method');
 		} else if ($permission === self::PERM_DENIED) {
-			$this->_controller = Config::get('environment.error.permission.controller');
-			$this->_method     = Config::get('environment.error.permission.method');
+			$this->_controller = Config::get('environment.error.403.controller');
+			$this->_method     = Config::get('environment.error.403.method');
 		}
 	}
 
