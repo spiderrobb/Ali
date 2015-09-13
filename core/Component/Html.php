@@ -59,6 +59,9 @@ class Html {
 	public static function inputEmail($name, $value, array $htmloptions = array()) {
 		return self::input('email', $name, $value, $htmloptions);
 	}
+	public static function inputUrl($name, $value, array $htmloptions = array()) {
+		return self::input('url', $name, $value, $htmloptions);
+	}
 	public static function inputHidden($name, $value, array $htmloptions = array()) {
 		return self::input('hidden', $name, $value, $htmloptions);
 	}
@@ -108,6 +111,11 @@ class Html {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputEmail($name, $value, $htmloptions);
+	}
+	public static function activeInputUrl(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+		$name  = self::modelName($record, $attribute);
+		$value = $record->$attribute;
+		return self::inputUrl($name, $value, $htmloptions);
 	}
 	public static function activeInputHidden(ActiveRecord $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
