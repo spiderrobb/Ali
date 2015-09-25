@@ -17,8 +17,8 @@ trait ViewLoader {
 
 		// building path location for absolute paths
 		if ($view[0] === '/') {
-			throw new Exception('Not implemented');
-			//$view = 'View'.$view;
+			// do nothing
+			$view = ltrim($view, '/');
 		} else {
 			// setting up include paths
 			$paths = Config::get('environment.include_path');
@@ -35,13 +35,13 @@ trait ViewLoader {
 		// building file location from view name
 		$path = $view.'.php';
 		if (file_exists($path)) {
-			// including css and javascript
-			Package::getInstance()->get($view);
 			// including php file of view
 			ob_start();
 			extract($data);
 			include $path;
 			$content = ob_get_clean();
+			// including css and javascript do this after the view so dependencies work
+			Package::getInstance()->get($view);
 		} else {
 			$dir = getcwd();
 			throw new Exception("View not found ({$path}) in ({$dir})");
