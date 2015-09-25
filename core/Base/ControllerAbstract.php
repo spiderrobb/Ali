@@ -70,15 +70,28 @@ abstract class ControllerAbstract implements ControllerInterface {
 		$this->init();
 	}
 	public function getTemplate($method = null) {
+		$templates = $this->templates();
+		$method    = strtolower($method);
+		if (isset($templates[$method])) {
+			return $templates[$method];
+		}
 		return Config::get('environment.default_template');
 	}
+	public function templates() {
+		return array();
+	}
 	public function getTitle($method = null) {
+		$titles = $this->titles();
+		$method = strtolower($method);
+		if (isset($titles[$method])) {
+			return $titles[$method];
+		}
 		return get_called_class().'-'.$method;
 	}
-	public function init() {
+	public function titles() {
+		return array();
 	}
-	public function actionIndex() {
-		?><h2>Blank Page</h2><?php
+	public function init() {
 	}
 }
 ?>
