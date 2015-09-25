@@ -15,7 +15,6 @@ abstract class ActiveRecord {
 	// database info
 	protected $_db;
 	protected $_table;
-	protected $_alias;
 
 	// record info
 	protected $_is_new;
@@ -38,7 +37,6 @@ abstract class ActiveRecord {
 		$this->_db     = $db;
 		$this->_table  = $table;
 		$this->_is_new = true;
-		$this->_alias  = 't';
 
 		// getting info about table
 		$table_info              = self::getTableData($db, $table);
@@ -135,28 +133,34 @@ abstract class ActiveRecord {
 		if (empty($pk)) {
 			throw new Exception('No primary key given.');
 		}
-		// building sql
-		$sql = "
-		SELECT *
-		FROM {$this->_table}
-		WHERE ".implode(' = ? AND ', array_keys($pk)).' = ?
-		LIMIT 1';
-		$data = $this->_db->fetchRow($sql, array_values($pk));
-		if ($data === false) {
-			return false;
-		}
-		return $this->loadFromArray($data);
+		$criteria = new Criteria(array(
+			'where'  => implode(' = ? AND ', array_keys($pk)).' = ?',
+			'params' => array_values($pk)
+		));
+		return $this->find($criteria);
 	}
-	public function findAll(Expression $expression = null) {
-		$sql = "SELECT 
-			*
-		FROM {$this->_table}";
-		if ($expression === null) {
-			$rows = $this->_db->fetchAll($sql);
-		} else {
-			$sql .= " WHERE ".$expression->getExpression();
-			$rows = $this->_db->fetchAll($sql, $expression->getParams());
+	public function find(Criteria $criteria = null) {
+		if ($criteria == null) {
+			$criteria = new Criteria();
 		}
+		$criteria->limit = 1;
+		$row             = $this->_db->fetchRow(
+			$criteria->getQuery($this->_table),
+			$criteria->params
+		);
+		if ($row === false) {
+			return null;
+		}
+		return self::getInstance()->loadFromArray($row);
+	}
+	public function findAll(Criteria $criteria = null) {
+		if ($criteria == null) {
+			$criteria = new Criteria();
+		}
+		$rows = $this->_db->fetchAll(
+			$criteria->getQuery($this->_table),
+			$criteria->params
+		);
 		$result = array();
 		foreach ($rows as $row) {
 			$result[] = self::getInstance()->loadFromArray($row);
@@ -164,9 +168,9 @@ abstract class ActiveRecord {
 		return $result;
 	}
 	public function loadFromArray(array $attributes) {
-		$this->_is_new = false;
-		$this->_data   = $attributes;
-		$this->_data   = $attributes;
+		$this->_is_new        = false;
+		$this->_data          = $attributes;
+		$this->_original_data = $attributes;
 		$this->_afterLoad();
 		return $this;
 	}

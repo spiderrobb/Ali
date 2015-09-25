@@ -3,7 +3,6 @@ namespace Ali\DB;
 use Exception;
 use PDO;
 use ReflectionClass;
-use Expression;
 class Connection extends PDO {
 	// static variable to hold creds for database connections
 	protected static $_creds              = null;
