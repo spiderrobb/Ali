@@ -75,7 +75,6 @@ class Criteria {
 			.$this->getOrderSQL()
 			.$this->getLimitSQL()
 			.$this->getOffsetSQL();
-		var_dump($sql);
 		return $sql;
 	}
 }
