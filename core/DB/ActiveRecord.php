@@ -6,6 +6,7 @@ use Ali\DB\Connection;
 use Ali\DB\Expression;
 
 abstract class ActiveRecord {
+	use Relation;
 	// this function returns an instance of the class
 	public static function getInstance() {
 		$class = get_called_class();
@@ -15,7 +16,6 @@ abstract class ActiveRecord {
 	// database info
 	protected $_db;
 	protected $_table;
-	protected $_alias;
 
 	// record info
 	protected $_is_new;
@@ -38,7 +38,6 @@ abstract class ActiveRecord {
 		$this->_db     = $db;
 		$this->_table  = $table;
 		$this->_is_new = true;
-		$this->_alias  = 't';
 
 		// getting info about table
 		$table_info              = self::getTableData($db, $table);
@@ -112,6 +111,13 @@ abstract class ActiveRecord {
 	public function tableName() {
 		return $this->_table;
 	}
+	public function getPK() {
+		$pk = array();
+		foreach ($this->_indexes['PRIMARY'] as $key) {
+			$pk[$key] = $this->$key;
+		}
+		return $pk;
+	}
 	/**
 	 * this function returns an object
 	 *
@@ -135,27 +141,62 @@ abstract class ActiveRecord {
 		if (empty($pk)) {
 			throw new Exception('No primary key given.');
 		}
-		// building sql
-		$sql = "
-		SELECT *
-		FROM {$this->_table}
-		WHERE ".implode(' = ? AND ', array_keys($pk)).' = ?
-		LIMIT 1';
-		$data = $this->_db->fetchRow($sql, array_values($pk));
-		if ($data === false) {
-			return false;
+		return $this->findByAttributes($pk);
+	}
+	public function find(Criteria $criteria = null) {
+		if ($criteria == null) {
+			$criteria = new Criteria();
 		}
+		$criteria->limit = 1;
+		$row             = $this->_db->fetchRow(
+			$criteria->getQuery($this->_table),
+			$criteria->params
+		);
+		if ($row === false) {
+			return null;
+		}
+		return $this->loadFromArray($row);
+	}
+	public function findByAttributes($attributes) {
+		return $this->find(
+			new Criteria(
+				array(
+					'where'  => implode(' = ? AND ', array_keys($attributes)).' = ?',
+					'params' => array_values($attributes)
+				)
+			)
+		);
+	}
+	public function findAll(Criteria $criteria = null) {
+		if ($criteria == null) {
+			$criteria = new Criteria();
+		}
+		$rows = $this->_db->fetchAll(
+			$criteria->getQuery($this->_table),
+			$criteria->params
+		);
+		$result = array();
+		foreach ($rows as $row) {
+			$result[] = self::getInstance()->loadFromArray($row);
+		}
+		return $result;
+	}
+	public function findAllByAttributes($attributes) {
+		return $this->findAll(
+			new Criteria(
+				array(
+					'where'  => implode(' = ? AND ', array_keys($attributes)).' = ?',
+					'params' => array_values($attributes)
+				)
+			)
+		);
+	}
+	public function loadFromArray(array $attributes) {
 		$this->_is_new        = false;
-		$this->_data          = $data;
-		$this->_original_data = $data;
+		$this->_data          = $attributes;
+		$this->_original_data = $attributes;
 		$this->_afterLoad();
 		return $this;
-	}
-	public function getList(array $args = array()) {
-		// building sql
-		$sql = "SELECT *
-		FROM {$this->_table}";
-		return $this->_db->fetchAll($sql);
 	}
 	/**
 	 * this function is called after a record is loaded
@@ -174,8 +215,13 @@ abstract class ActiveRecord {
 	 * @return mixed attribute value
 	 */
 	public function __get($key) {
+		// checking table attributes
 		if (in_array($key, array_keys($this->_data))) {
 			return $this->_data[$key];
+		}
+		// checking relations
+		if ($this->issetRelation($key)) {
+			return $this->getRelation($key);
 		}
 		throw new Exception("Attribute [{$key}] Does Not Exist.");
 	}
@@ -185,6 +231,9 @@ abstract class ActiveRecord {
 			return;
 		}
 		throw new Exception("Attribute [{$key}] Does Not Exist.");
+	}
+	public function relations() {
+		return array();
 	}
 	public function getAttributeLabel($field) {
 		$attributes = $this->getAttributeLabels();
@@ -231,6 +280,12 @@ abstract class ActiveRecord {
 	}
 	public function getEnumLabels($field) {
 		return array();
+	}
+	public function getAttributes() {
+		return $this->_data;
+	}
+	public function isNew() {
+		return $this->_is_new;
 	}
 	protected function _beforeSave() {
 		return true;

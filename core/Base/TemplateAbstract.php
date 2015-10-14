@@ -7,8 +7,8 @@ abstract class TemplateAbstract implements TemplateInterface {
 		$this->_user = $user;
 	}
 	public function build($args) {
-		if (isset($args['html_content'])) {
-			echo $args['html_content'];
+		if (isset($args['content'])) {
+			echo $args['content'];
 		}
 	}
 }

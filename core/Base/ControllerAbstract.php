@@ -10,11 +10,11 @@ abstract class ControllerAbstract implements ControllerInterface {
 		// changing '\\' to '/' to look better in the url
 		$url = str_replace('\\', '/', get_called_class());
 		// removing the begining 'Controller_' so url's look better
-		$url = str_replace('Ali/Controller/', '', $url);
+		$url = strtolower(preg_replace('/.*?\/Controller\//', '', $url));
 		
 		// appending method to end of url if method is specified
 		if (isset($method)) {
-			$url .= '-'.$method.'/';
+			$url .= '-'.strtolower($method).'/';
 		} else if (!empty($args)) {
 			$url .= '-/';
 		} else {
@@ -70,15 +70,28 @@ abstract class ControllerAbstract implements ControllerInterface {
 		$this->init();
 	}
 	public function getTemplate($method = null) {
+		$templates = $this->templates();
+		$method    = strtolower($method);
+		if (isset($templates[$method])) {
+			return $templates[$method];
+		}
 		return Config::get('environment.default_template');
 	}
+	public function templates() {
+		return array();
+	}
 	public function getTitle($method = null) {
+		$titles = $this->titles();
+		$method = strtolower($method);
+		if (isset($titles[$method])) {
+			return $titles[$method];
+		}
 		return get_called_class().'-'.$method;
 	}
-	public function init() {
+	public function titles() {
+		return array();
 	}
-	public function actionIndex() {
-		?><h2>Blank Page</h2><?php
+	public function init() {
 	}
 }
 ?>

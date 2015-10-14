@@ -6,20 +6,22 @@ use Ali\Package;
 use Exception;
 
 trait ViewLoader {
+	private $_last_context = false;
 	protected function _view($view, array $data = array(), $toString = false) {
-		// setting up include paths
-		$paths = Config::get('environment.include_path');
+		// getting last context
+		$prev_context = $this->_last_context;
+		$context = debug_backtrace(false)[1];
+		if (isset($context['class'])) {
+			$this->_last_context = $context;
+		}
 
 		// building path location for absolute paths
 		if ($view[0] === '/') {
-			$view = 'View'.$view;
+			// do nothing
+			$view = ltrim($view, '/');
 		} else {
-			// dynamicly building view path from class name
-			$context = debug_backtrace(false)[1];
-			if (!isset($context['class'])) {
-				var_dump(debug_backtrace(false));
-				throw new Exception('Error: must use absolute view path from this location.');
-			}
+			// setting up include paths
+			$paths = Config::get('environment.include_path');
 			// building namespace preg_replace
 			$patterns = array();
 			$replace  = array();
@@ -27,23 +29,26 @@ trait ViewLoader {
 				$patterns[] = '/^'.str_replace('\\', '\\\\', $namespace).'/';
 				$replace[]  = $path.'/View/';
 			}
-			$view = str_replace('\\', '/', preg_replace($patterns, $replace, $context['class'])).'/'.$view;
+			$view = str_replace('\\', '/', preg_replace($patterns, $replace, $this->_last_context['class'])).'/'.$view;
 		}
 
 		// building file location from view name
 		$path = $view.'.php';
 		if (file_exists($path)) {
-			// including css and javascript
-			Package::getInstance()->get($view);
 			// including php file of view
 			ob_start();
 			extract($data);
 			include $path;
 			$content = ob_get_clean();
+			// including css and javascript do this after the view so dependencies work
+			Package::getInstance()->get($view);
 		} else {
 			$dir = getcwd();
 			throw new Exception("View not found ({$path}) in ({$dir})");
 		}
+
+		// returning last context to prior state
+		$this->_last_context = $prev_context;
 		
 		// return method
 		if ($toString) {

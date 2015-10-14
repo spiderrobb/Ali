@@ -148,6 +148,16 @@ class Input {
 
 	// base get function
 	public function checkReturn(array $array, $key = null, $unset = null) {
+		if (is_array($key)) {
+			while (!empty($key)) {
+				$new_key = array_shift($key);
+				if (!isset($array[$new_key])) {
+					return $unset;
+				}
+				$array = $array[$new_key];
+			}
+			return $array;
+		}
 		if ($key === null) {
 			return $array;
 		} else if (!isset($array[$key])) {

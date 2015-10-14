@@ -44,9 +44,22 @@ class App {
 			$this->_controller = Config::get('environment.error.404.controller');
 			$this->_method     = Config::get('environment.error.404.method');
 		} else if ($permission === self::PERM_DENIED) {
-			$this->_controller = Config::get('environment.error.permission.controller');
-			$this->_method     = Config::get('environment.error.permission.method');
+			$this->_controller = Config::get('environment.error.403.controller');
+			$this->_method     = Config::get('environment.error.403.method');
 		}
+	}
+
+	public static function getLink($href) {
+		if (is_array($href)) {
+			$href_controller = Config::get('environment.default_controller');
+			$href_method     = Config::get('environment.default_method');
+			$href_get        = array();
+			$href_args       = array();
+			extract($href, EXTR_PREFIX_ALL, 'href');
+
+			return $href_controller::getURL($href_method, $href_get, $href_args);
+		}
+		return $href;
 	}
 
 	public static function redirect($url) {
@@ -105,9 +118,10 @@ class App {
 		$content = ob_get_clean();
 
 		// getting template information
-		$var_template               = $app->getTemplate($this->_method);
-		$var_params['html_title']   = $html_title;
-		$var_params['html_content'] = $content;
+		$var_template             = $app->getTemplate($this->_method);
+		$var_params['controller'] = $app;
+		$var_params['title']      = $html_title;
+		$var_params['content']    = $content;
 
 		
 		// validating template
@@ -146,37 +160,5 @@ class App {
 		}
 		echo $content;
 		return true;
-	}
-	
-	/**
-	 * this function prints a json encoded array with 4 attributes:
-	 * 'scripts', 'styles', 'calls' and 'html'
-	 * the page is rendered without the template html
-	 * the scripts attribute is an array of all javascript files needed for the html
-	 * the styles  attribute is an array of all stylesheet files needed for the html
-	 * the calls   attribute is a chunk of javascript that needs to be executed after load
-	 * the html    attribute is the html associated with the request
-	 *
-	 * @return void
-	 */
-	public function json() {
-		// getting controller and method
-		$controller = $this->_controller;
-		$method     = 'action'.$this->_method;
-		
-		// getting html
-		ob_start();
-		//$this->_package->generateCustomStyle();
-		$app = new $controller($this->_user, $this->_input);
-		$app->$method();
-		$content = ob_get_clean();
-		
-		// building json array
-		echo json_encode(array(
-			'scripts' => $this->_package->getScriptLinks(),
-			'styles'  => $this->_package->getStyleLinks(),
-			'calls'   => $this->_package->getScriptCalls(),
-			'html'    => $content
-		));
 	}
 }

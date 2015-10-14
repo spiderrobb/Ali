@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><title><?php
-if (isset($html_title)) {
-	echo $html_title;
+if (isset($title)) {
+	echo $title;
 }
 ?></title><?php
 $package = \Ali\Package::getInstance();
@@ -10,8 +10,8 @@ $package->generateStyle();
 $package->generateCustomStyle();
 $package->generateScript();
 ?></head><body><?php
-if (isset($html_content)) {
-	echo $html_content;
+if (isset($content)) {
+	echo $content;
 }
 $package->generateCustomScript();
 ?></body></html>
