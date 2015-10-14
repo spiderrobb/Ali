@@ -55,7 +55,8 @@ class App {
 			$href_method     = Config::get('environment.default_method');
 			$href_get        = array();
 			$href_args       = array();
-			extract($href, EXTR_OVERWRITE, 'href');
+			extract($href, EXTR_PREFIX_ALL, 'href');
+
 			return $href_controller::getURL($href_method, $href_get, $href_args);
 		}
 		return $href;
