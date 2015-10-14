@@ -10,11 +10,11 @@ abstract class ControllerAbstract implements ControllerInterface {
 		// changing '\\' to '/' to look better in the url
 		$url = str_replace('\\', '/', get_called_class());
 		// removing the begining 'Controller_' so url's look better
-		$url = preg_replace('/.*?\/Controller\//', '', $url);
+		$url = strtolower(preg_replace('/.*?\/Controller\//', '', $url));
 		
 		// appending method to end of url if method is specified
 		if (isset($method)) {
-			$url .= '-'.$method.'/';
+			$url .= '-'.strtolower($method).'/';
 		} else if (!empty($args)) {
 			$url .= '-/';
 		} else {
