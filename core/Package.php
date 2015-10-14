@@ -226,7 +226,7 @@ class Package {
 	// the css styles added through the addStyle function for this request
 	public function generateCustomStyle() {
 		if (!empty($this->_css_raw)) {
-			echo Html::tag('style', $this->getStyleLinks());
+			echo Html::tag('style', $this->getStyleLinks(), array(), false);
 		}
 	}
 	// the getStyleLinks function returns the full list of css urls
