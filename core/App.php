@@ -1,7 +1,9 @@
 <?php
 namespace Ali;
 
+use Exception;
 use Ali\Base\UserInterface;
+
 /**
  * The App Class handles validation and permissions checking for any controller
  * method combination, in addition to validing controller:method requests it prints

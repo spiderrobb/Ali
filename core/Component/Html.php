@@ -21,9 +21,18 @@ class Html {
 		return '</'.$name.'>';
 	}
 	public static function tag($name, $value, array $htmloptions = array(), $sanitize = true) {
-		return self::startTag($name, $htmloptions)
-			.($sanitize ? htmlentities($value) : $value)
-			.self::endTag($name);
+		if ($sanitize) {
+			if (mb_detect_encoding($value, 'UTF-8', true)) {
+				$value = utf8_decode($value);
+			}
+			$value = preg_replace_callback(
+				"/(&#[0-9]+;)/", function($m) {
+					return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); 
+				}, $value
+			); 
+			$value = htmlspecialchars($value);
+		}
+		return self::startTag($name, $htmloptions).$value.self::endTag($name);
 	}
 
 	// start form helpers
