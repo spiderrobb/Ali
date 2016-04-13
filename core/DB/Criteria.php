@@ -15,7 +15,7 @@ class Criteria {
 	public function __construct(array $attributes = array()) {
 		// initialize vars
 		$this->select = '*';
-		$this->alias  = 't';
+		$this->alias  = '';
 		$this->join   = null;
 		$this->where  = null;
 		$this->group  = null;
@@ -36,6 +36,13 @@ class Criteria {
 				throw new Exception("var: {$var} does not exist in ".__CLASS__);
 			}
 			$this->$var = $value;
+		}
+	}
+	public function addCondition($condition, $operator = 'AND') {
+		if ($this->where !== null) {
+			$this->where = '('.$this->where.') '.$operator.' '.$condition;
+		} else {
+			$this->where = $condition;
 		}
 	}
 	public function getSelectSQL() {
