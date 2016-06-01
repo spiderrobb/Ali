@@ -11,7 +11,6 @@ class UserSession implements UserInterface {
 		static $user = false;
 		// creating user session
 		if (!isset($_SESSION['user'])) {
-
 			// building session
 			$_SESSION['user'] = array(
 				'start'      => $_SERVER['REQUEST_TIME'],
@@ -25,6 +24,7 @@ class UserSession implements UserInterface {
 		return $user;
 	}
 	public function checkPermissions($permissions) {
+		// todo pull permissions from config for public user
 		return true;
 	}
 }
