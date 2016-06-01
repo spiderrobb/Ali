@@ -92,6 +92,13 @@ class Package {
 		$this->getStyle($package);
 	}
 
+	public function getPackages() {
+		return array(
+			'js'  => $this->_js_packages,
+			'css' => $this->_css_packages
+		);
+	}
+
 	/**
 	 * this function takes a string of javascript and makes sure it it is executed 
 	 * for the current request
@@ -226,13 +233,13 @@ class Package {
 	// the css styles added through the addStyle function for this request
 	public function generateCustomStyle() {
 		if (!empty($this->_css_raw)) {
-			echo Html::tag('style', $this->getStyleLinks(), array(), false);
+			echo Html::tag('style', implode(' ', $this->_css_raw), array(), false);
 		}
 	}
 	// the getStyleLinks function returns the full list of css urls
 	// that have been linked to this request
 	public function getStyleLinks() {
-		return implode(' ', $this->_css_raw);
+		return $this->_css_files;
 	}
 
 	public function getAssetPath($path) {

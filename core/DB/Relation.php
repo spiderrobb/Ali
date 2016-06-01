@@ -53,7 +53,7 @@ trait Relation {
 				$attributes[$key] = $pk[$pk_key];
 			}
 		} else {
-			$attributes = array($spec_key => array_pop($pk));
+			$attributes = array($spec_key => $pk);
 		}
 
 		// finding relation

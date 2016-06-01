@@ -1,7 +1,7 @@
 <?php
 namespace Ali\Component;
 
-use Ali\DB\ActiveRecord;
+use Ali\DB\ActiveRecordIntereface;
 use ReflectionClass;
 
 class Html {
@@ -21,9 +21,18 @@ class Html {
 		return '</'.$name.'>';
 	}
 	public static function tag($name, $value, array $htmloptions = array(), $sanitize = true) {
-		return self::startTag($name, $htmloptions)
-			.($sanitize ? htmlentities($value) : $value)
-			.self::endTag($name);
+		if ($sanitize) {
+			if (mb_detect_encoding($value, 'UTF-8', true)) {
+				$value = utf8_decode($value);
+			}
+			$value = preg_replace_callback(
+				"/(&#[0-9]+;)/", function($m) {
+					return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); 
+				}, $value
+			); 
+			$value = htmlspecialchars($value);
+		}
+		return self::startTag($name, $htmloptions).$value.self::endTag($name);
 	}
 
 	// start form helpers
@@ -93,46 +102,46 @@ class Html {
 	}
 
 	// start active form helpers
-	public static function modelName(ActiveRecord $record, $attribute) {
+	public static function modelName(ActiveRecordInterface $record, $attribute) {
 		$ref = new ReflectionClass($record);
 		return $ref->getShortName().'['.$attribute.']';
 	}
-	public static function activeInputText(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputText(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputText($name, $value, $htmloptions);
 	}
-	public static function activeInputTextArea(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputTextArea(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputTextArea($name, $value, $htmloptions);
 	}
-	public static function activeInputEmail(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputEmail(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputEmail($name, $value, $htmloptions);
 	}
-	public static function activeInputUrl(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputUrl(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputUrl($name, $value, $htmloptions);
 	}
-	public static function activeInputHidden(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputHidden(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputHidden($name, $value, $htmloptions);
 	}
-	public static function activeInputPassword(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeInputPassword(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputPassword($name, $value, $htmloptions);
 	}
-	public static function activeInputSelect(ActiveRecord $record, $attribute, array $options, array $htmloptions = array()) {
+	public static function activeInputSelect(ActiveRecordInterface $record, $attribute, array $options, array $htmloptions = array()) {
 		$name  = self::modelName($record, $attribute);
 		$value = $record->$attribute;
 		return self::inputSelect($name, $value, $options, $htmloptions);
 	}
-	public static function activeLabel(ActiveRecord $record, $attribute, array $htmloptions = array()) {
+	public static function activeLabel(ActiveRecordInterface $record, $attribute, array $htmloptions = array()) {
 		$label = $record->getAttributeLabel($attribute);
 		return self::label($label, $htmloptions);
 	}
