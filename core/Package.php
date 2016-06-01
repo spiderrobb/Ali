@@ -92,6 +92,13 @@ class Package {
 		$this->getStyle($package);
 	}
 
+	public function getPackages() {
+		return array(
+			'js'  => $this->_js_packages,
+			'css' => $this->_css_packages
+		);
+	}
+
 	/**
 	 * this function takes a string of javascript and makes sure it it is executed 
 	 * for the current request

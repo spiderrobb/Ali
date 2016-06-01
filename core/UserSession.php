@@ -21,9 +21,6 @@ class UserSession implements UserInterface {
 		// creating user if one does not exist
 		if ($user === false) {
 			$user = new UserSession();
-			if (isset($_SESSION['user']['id'])) {
-				$user->findByPK($_SESSION['user']['id']);
-			}
 		}
 		return $user;
 	}

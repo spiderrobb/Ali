@@ -1,13 +1,12 @@
 <?php
-namespace Ali\GDS;
+namespace Ali\DB;
 use Exception;
-use Ali\DB\Criteria;
 use GDS\Entity;
 use GDS\Store;
 use GDS\Schema;
 
-abstract class ActiveRecord extends Entity {
-
+abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
+	use Relation;
 	private $_errors = array();
 
 	// this function returns an instance of the class
@@ -19,9 +18,12 @@ abstract class ActiveRecord extends Entity {
 	public function __construct() {
 		$this->_initValueDefaults();
 	}	
+	public function getPK() {
+		return $this->getKeyId();
+	}
 
 	public function isNew() {
-		return $this->getKeyId() === null;
+		return $this->getPK() === null;
 	}
 	public abstract function getDefinition();
 
@@ -54,10 +56,10 @@ abstract class ActiveRecord extends Entity {
 			}
 		}
 	}
-	public function onBeforeValidate() {
+	public function _beforeValidate() {
 		return true;
 	}
-	private function _validate() {
+	public function validate() {
 		$def   = $this->getDefinition();
 		$valid = true;
 		foreach ($def as $key => $value) {
@@ -75,11 +77,8 @@ abstract class ActiveRecord extends Entity {
 		}
 		return $valid;
 	}
-	public function onAfterValidate() {
+	public function _afterValidate() {
 
-	}
-	public function getClass() {
-		return get_class($this);
 	}
 	public function getStore() {
 		static $store = false;
@@ -100,7 +99,7 @@ abstract class ActiveRecord extends Entity {
 				$func  = 'add'.ucwords($field['type']);
 				$index = isset($field['index']) ? $field['index'] : false;
 				$schema->$func($name, $index);
-				$schema->setEntityClass($this->getClass());
+				$schema->setEntityClass(get_called_class());
 			}
 		}
 		return $schema;
@@ -117,7 +116,7 @@ abstract class ActiveRecord extends Entity {
 			$criteria->params
 		);
 	}
-	public function findByAttributes($attributes) {
+	public function findByAttributes(array $attributes) {
 		$criteria = new Criteria();
 		$i = 0;
 		foreach ($attributes as $key => $value) {
@@ -136,7 +135,7 @@ abstract class ActiveRecord extends Entity {
 			$criteria->params
 		);
 	}
-	public function findAllByAttributes($attributes) {
+	public function findAllByAttributes(array $attributes) {
 		$criteria = new Criteria();
 		$i = 0;
 		foreach ($attributes as $key => $value) {
@@ -146,28 +145,33 @@ abstract class ActiveRecord extends Entity {
 		}
 		return $this->findAll($criteria);	
 	}
-	public function onBeforeSave() {
+	protected function _beforeSave() {
 		return true;
 	}
 	public function save() {
 		$valid = false;
-		if ($this->onBeforeValidate()) {
-			$valid = $this->_validate();
-			$this->onAfterValidate();
+		if ($this->_beforeValidate()) {
+			$valid = $this->validate();
+			$this->_afterValidate();
 
-			if ($valid && $this->onBeforeSave()) {
+			if ($valid && $this->_beforeSave()) {
 				$this->getStore()->upsert($this);
-				$this->onAfterSave();
+				$this->_afterSave();
 			}
 		}
 		return $valid;
 	}
-	public function onAfterSave() {
+	public function _afterSave() {
 		// place holder function
 	}
 	public function __get($key) {
+		// checking entity attributes
 		if (isset($this->$key)) {
 			return parent::__get($key);
+		}
+		// checking relations
+		if ($this->issetRelation($key)) {
+			return $this->getRelation($key);
 		}
 		throw new Exception('Error '.$key.' is not set.');
 	}
@@ -187,5 +191,14 @@ abstract class ActiveRecord extends Entity {
 			}
 		}
 		return ucwords(str_replace('_', ' ', $attribute));
+	}
+	public function getAttributes() {
+		return $this->getData();
+	}
+	public function relations() {
+		return [];
+	}
+	public function delete() {
+
 	}
 }

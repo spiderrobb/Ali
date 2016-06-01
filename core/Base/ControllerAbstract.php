@@ -44,7 +44,7 @@ abstract class ControllerAbstract implements ControllerInterface {
 	}
 
 	public static function getRoles($method = null) {
-		return Config::get('environment.default_role');
+		return Config::get('auth.default_role', 'admin');
 	}
 	final public static function getPermissions($method = null) {
 		$class = get_called_class();
