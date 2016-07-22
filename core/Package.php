@@ -231,10 +231,15 @@ class Package {
 	}
 	// the generateCustomStyle function generates the html for all
 	// the css styles added through the addStyle function for this request
-	public function generateCustomStyle() {
+	public function generateCustomStyle($toString = false) {
+		ob_start();
 		if (!empty($this->_css_raw)) {
 			echo Html::tag('style', implode(' ', $this->_css_raw), array(), false);
 		}
+		if ($toString) {
+			return ob_get_clean();
+		}
+		echo ob_get_clean();
 	}
 	// the getStyleLinks function returns the full list of css urls
 	// that have been linked to this request

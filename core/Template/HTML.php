@@ -9,4 +9,3 @@ class HTML extends TemplateAbstract {
 		parent::build($args);
 	}
 }
-?>
