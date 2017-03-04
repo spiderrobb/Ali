@@ -65,6 +65,15 @@ class App {
 		return $href;
 	}
 
+	public static function getAbsoluteUrl($href) {
+		$url = 'http';
+		if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
+			$url .= 's';
+		}
+		$url .= '://'.$_SERVER['HTTP_HOST'].self::getLink($href);
+		return $url;
+	}
+
 	public static function redirect($url) {
 		header('location: '.$url);
 		exit();
