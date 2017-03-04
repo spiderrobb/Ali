@@ -22,6 +22,7 @@ class App {
 	protected $_method;
 	protected $_user;
 	protected $_package;
+	private static $_last_exception = null;
 	
 	/**
 	 * The constructor takes a controller class name and method
@@ -68,6 +69,9 @@ class App {
 		header('location: '.$url);
 		exit();
 	}
+	public static function getLastException() {
+		return self::$_last_exception;
+	}
 	
 	/**
 	 * this function is used to check the permissions of a given controller method combo
@@ -101,26 +105,27 @@ class App {
 		// valid permissions
 		return self::PERM_GRANTED;
 	}
-	
-	/**
-	 * this function prints the full html page for the given contoller and method
-	 *
-	 * @return void
-	 */
-	public function html() {
-		// getting template
-		$controller = $this->_controller;
-		$method     = 'action'.$this->_method;
-		
+
+	private function _render($controller, $method, $template = true) {
+		$method = 'action'.$method;
 		// starting capture of page
-		ob_start();
-		$app        = new $controller($this->_user, $this->_input);
-		$html_title = $app->getTitle($this->_method);
-		$app->$method();
-		$content = ob_get_clean();
+		try {
+			ob_start();
+			$app = new $controller($this->_user, $this->_input);
+			$app->$method();
+			if (!$template) {
+				echo ob_get_clean();
+				return;
+			}
+			$var_template = $app->getTemplate($this->_method);
+			$html_title   = $app->getTitle($this->_method);
+			$content      = ob_get_clean();
+		} catch (Exception $e) {
+			ob_get_clean();
+			throw $e;
+		}
 
 		// getting template information
-		$var_template             = $app->getTemplate($this->_method);
 		$var_params['controller'] = $app;
 		$var_params['title']      = $html_title;
 		$var_params['content']    = $content;
@@ -139,6 +144,26 @@ class App {
 	}
 	
 	/**
+	 * this function prints the full html page for the given contoller and method
+	 *
+	 * @return void
+	 */
+	public function html() {
+		try {
+			ob_start();
+			$this->_render($this->_controller, $this->_method);
+			echo ob_get_clean();
+		} catch (Exception $e) {
+			self::$_last_exception = $e;
+			ob_get_clean();
+			$this->_render(
+				$this->_controller = Config::get('environment.error.500.controller'),
+				$this->_method     = Config::get('environment.error.500.method')
+			);
+		}
+	}
+	
+	/**
 	 * this function echo's or returns the string of a controller call
 	 *
 	 * @param boolean $toString true to return string, false to print
@@ -146,21 +171,12 @@ class App {
 	 * @return string|true
 	 */
 	public function component($toString = false) {
-		// getting app controller & method
-		$controller = $this->_controller;
-		$method     = 'action'.$this->_method;
-
-		// starting capture of page
 		ob_start();
-		$app = new $controller($this->_user, $this->_input);
-		$app->$method();
-		$content = ob_get_clean();
-		
-		// checking to string
+		$this->_render($this->_controller, $this->_method, false);
 		if ($toString) {
-			return $content;
+			return ob_get_clean();
 		}
-		echo $content;
+		echo ob_get_clean();
 		return true;
 	}
 }

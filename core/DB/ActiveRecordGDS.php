@@ -17,7 +17,26 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 
 	public function __construct() {
 		$this->_initValueDefaults();
-	}	
+	}
+
+	public function setAttributes(array $attributes, array $safe) {
+		foreach ($safe as $safe_key) {
+			if (isset($attributes[$safe_key])) {
+				$this->$safe_key = $attributes[$safe_key];
+			}
+		}
+	}
+
+	public function labels() {
+		return [];
+	}
+
+	public function validators() {
+
+	}
+
+	public abstract function getDefinition();
+
 	public function getPK() {
 		return $this->getKeyId();
 	}
@@ -25,7 +44,6 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 	public function isNew() {
 		return $this->getPK() === null;
 	}
-	public abstract function getDefinition();
 
 	public function addError($field, $errors) {
 		if (!isset($this->_errors[$field])) {
@@ -56,22 +74,22 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 			}
 		}
 	}
+
 	public function _beforeValidate() {
 		return true;
 	}
+
 	public function validate() {
-		$def   = $this->getDefinition();
-		$valid = true;
-		foreach ($def as $key => $value) {
-			if (isset($value['validators'])) {
-				foreach ($value['validators'] as $validator) {
-					$validator->filter($this, $key);
-				}
-				foreach ($value['validators'] as $validator) {
-					if ($validator->validate($this, $key) === false) {
-						$this->addError($key, $validator->getErrors());
-						$valid = false;
-					}
+		$validators = $this->validators();
+		$valid      = true;
+		foreach ($validators as $key => $rules) {
+			foreach ($rules as $validator) {
+				$validator->filter($this, $key);
+			}
+			foreach ($rules as $validator) {
+				if ($validator->validate($this, $key) === false) {
+					$this->addError($key, $validator->getErrors());
+					$valid = false;
 				}
 			}
 		}
@@ -184,10 +202,10 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 		}
 	}
 	public function getAttributeLabel($attribute) {
-		$definition = $this->getDefinition();
-		if (isset($definition[$attribute])) {
-			if (isset($definition[$attribute]['label'])) {
-				return $definition[$attribute]['label'];
+		$labels = $this->labels();
+		if (isset($labels[$attribute])) {
+			if (isset($labels[$attribute])) {
+				return $labels[$attribute];
 			}
 		}
 		return ucwords(str_replace('_', ' ', $attribute));

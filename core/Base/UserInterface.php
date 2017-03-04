@@ -1,7 +1,7 @@
 <?php
 namespace Ali\Base;
 interface UserInterface {
-	public static function getInstance();
+	public static function getSession();
 	//public function __construct();
 	//public function login($email, $password);
 	//public function logout();

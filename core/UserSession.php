@@ -7,7 +7,7 @@ use Ali\Base\UserInterface;
 
 class UserSession implements UserInterface {
 	// this function gets an instance of a user
-	public static function getInstance() {
+	public static function getSession() {
 		static $user = false;
 		// creating user session
 		if (!isset($_SESSION['user'])) {

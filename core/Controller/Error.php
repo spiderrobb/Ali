@@ -14,6 +14,7 @@ class Error extends ControllerAbstract
 		$this->_view('403');
 	}
 	public function action500() {
+		echo 'test';
 		// internal server error
 		$this->_view('500');
 	}

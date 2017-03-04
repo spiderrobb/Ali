@@ -1,7 +1,7 @@
 <?php
 namespace Ali\Component;
 
-use Ali\DB\ActiveRecordIntereface;
+use Ali\DB\ActiveRecordInterface;
 use ReflectionClass;
 
 class Html {
