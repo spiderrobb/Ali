@@ -19,9 +19,12 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 		$this->_initValueDefaults();
 	}
 
-	public function setAttributes(array $attributes, array $safe) {
+	public function setAttributes(array $attributes, array $safe = []) {
+		if (empty($safe)) {
+			$safe = array_keys($attributes);
+		}
 		foreach ($safe as $safe_key) {
-			if (isset($attributes[$safe_key])) {
+			if (isset($attributes[$safe_key]) || empty($safe)) {
 				$this->$safe_key = $attributes[$safe_key];
 			}
 		}
@@ -32,7 +35,7 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 	}
 
 	public function validators() {
-
+		return [];
 	}
 
 	public abstract function getDefinition();
@@ -69,7 +72,8 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 	private function _initValueDefaults() {
 		$def = $this->getDefinition();
 		foreach ($def as $key => $row_def) {
-			if (isset($row_def['default'])) {
+			$this->$key = null;
+			if (is_array($row_def) && isset($row_def['default'])) {
 				$this->$key = $row_def['default'];
 			}
 		}
@@ -81,19 +85,17 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 
 	public function validate() {
 		$validators = $this->validators();
-		$valid      = true;
-		foreach ($validators as $key => $rules) {
-			foreach ($rules as $validator) {
-				$validator->filter($this, $key);
-			}
-			foreach ($rules as $validator) {
-				if ($validator->validate($this, $key) === false) {
-					$this->addError($key, $validator->getErrors());
-					$valid = false;
-				}
+		foreach ($validators as $key => $validator) {
+			$validator->filter($this, $key);
+		}
+		foreach ($validators as $key => $validator) {
+			if ($validator->validate($this, $key) === false) {
+				$this->addError($key, $validator->getErrors());
+				$validator->clearErrors();
 			}
 		}
-		return $valid;
+		return empty($this->getErrors());
+
 	}
 	public function _afterValidate() {
 
@@ -111,6 +113,9 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 			$schema     = new Schema($this->getKind());
 			$schema_def = $this->getDefinition();
 			foreach ($schema_def as $name => $field) {
+				if (!is_array($field)) {
+					$field = ['type' => $field];
+				}
 				if (!isset($field['type'])) {
 					throw new Exception('Error, type not set in field deffinition');
 				}
@@ -164,7 +169,7 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 		return $this->findAll($criteria);	
 	}
 	protected function _beforeSave() {
-		return true;
+		return empty($this->getErrors());
 	}
 	public function save() {
 		$valid = false;
@@ -184,7 +189,8 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 	}
 	public function __get($key) {
 		// checking entity attributes
-		if (isset($this->$key)) {
+		$definition = $this->getDefinition();
+		if (isset($definition[$key])) {
 			return parent::__get($key);
 		}
 		// checking relations
@@ -201,6 +207,12 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 			throw new Exception('Error '.$key.' is not settable.');
 		}
 	}
+	// public function __isset($key) {
+	// 	return parent::__isset($key);
+	// }
+	// public function __unset($key) {
+	// 	return parent::__unset($key);
+	// }
 	public function getAttributeLabel($attribute) {
 		$labels = $this->labels();
 		if (isset($labels[$attribute])) {
@@ -217,6 +229,6 @@ abstract class ActiveRecordGDS extends Entity implements ActiveRecordInterface {
 		return [];
 	}
 	public function delete() {
-
+		//todo
 	}
 }

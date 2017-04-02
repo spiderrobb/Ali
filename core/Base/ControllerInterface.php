@@ -11,4 +11,3 @@ interface ControllerInterface {
 	public static function getURL($method = null, array $get = array(), array $args = array());
 	public static function getAbsoluteURL($method = null, array $get = array(), array $args = array());
 }
-?>

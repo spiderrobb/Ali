@@ -48,11 +48,8 @@ abstract class ControllerAbstract implements ControllerInterface {
 	}
 	final public static function getPermissions($method = null) {
 		$method = strtolower($method);
-		$class = get_called_class();
-		$perms = $class::getRoles($method);
-		if (!is_array($perms)) {
-			$perms = array($perms);
-		}
+		$class  = get_called_class();
+		$perms  = (array) $class::getRoles($method);
 		foreach ($perms as &$perm) {
 			$perm = 'role.'.$perm;
 		}

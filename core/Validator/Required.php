@@ -10,9 +10,8 @@ class Required extends ValidatorAbstract {
 		if ($this->required && $this->isEmpty($value)) {
 			$label = $object->getAttributeLabel($attribute);
 			$this->addError("{$label} is a required field.");
-			return false;
 		}
-		return true;
+		return parent::validate($object, $attribute);
 	}
 	protected function isEmpty($value) {
 		foreach ($this->empty_values as $empty_val) {

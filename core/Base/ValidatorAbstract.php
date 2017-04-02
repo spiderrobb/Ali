@@ -17,6 +17,11 @@ abstract class ValidatorAbstract implements ValidatorInterface {
 	public function getErrors() {
 		return $this->errors;
 	}
+	public function clearErrors() {
+		$this->errors = [];
+	}
 	public function filter($object, $attribute) {}
-	public abstract function validate($object, $attribute);
+	public function validate($object, $attribute) {
+		return empty($this->errors);
+	}
 }
